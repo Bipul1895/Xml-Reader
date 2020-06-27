@@ -48,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
         //3rd arg : Return type : The result expected out from the doInBackground method, here a string of xml feed
 
 
+        //Responsible for calling method to parse the data from ParseApplications class
+        //Also creates an array adapter and displays data in ListView
         //The result of doInBackground method is received by this method as parameter string s
         //Calls parse() method of ParseApplications calls and the result if stored in
         //an arrayList named getApplications which is a private member of ParseApplications class
@@ -57,6 +59,10 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(s);
             Log.d(TAG, "onPostExecute: parameter is " + s);
             if(s==null) return;
+
+            //Let's do the parsing
+            ParseApplications parseApplications=new ParseApplications();
+            parseApplications.parse(s);
 
         }
 
@@ -119,6 +125,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "downloadXML: Invalid URL" + e.getMessage());
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+            catch (SecurityException e) {
+                Log.e(TAG, "downloadXML: Security Exception, Needs permission? " + e.getMessage());
             }
 
             return null;

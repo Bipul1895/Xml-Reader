@@ -48,6 +48,7 @@ public class FeedAdapter extends ArrayAdapter {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        /*
         View view=layoutInflater.inflate(layoutResource, parent, false);
 
         TextView tvName=view.findViewById(R.id.tvName);
@@ -63,6 +64,30 @@ public class FeedAdapter extends ArrayAdapter {
         Log.d(TAG, "getView: " + currentApp.getName());
 
         return view;
+        */
 
+        //When we keep scrolling down in listView, it recycles the views that were already displayed
+        //These views are made available to us to reuse in the "convertView" argument
+        //ConvertView is null if there is no view that has been recycled
+        //If we are using the convertView, which means we are getting a view that was inflated before and we
+        //do not need to inflate again. This saves memory and makes app more responsive.
+
+        if(convertView == null){
+            convertView = layoutInflater.inflate(layoutResource,parent,false);
+        }
+
+        TextView tvName=convertView.findViewById(R.id.tvName);
+        TextView tvArtist=convertView.findViewById(R.id.tvArtist);
+        TextView tvSummary=convertView.findViewById(R.id.tvSummary);
+
+        FeedEntry currentApp = applications.get(position);
+
+        tvName.setText(currentApp.getName());
+        tvArtist.setText(currentApp.getArtist());
+        tvSummary.setText(currentApp.getSummary());
+
+        //Log.d(TAG, "getView: tvName : " + currentApp.getName());
+
+        return convertView;
     }
 }

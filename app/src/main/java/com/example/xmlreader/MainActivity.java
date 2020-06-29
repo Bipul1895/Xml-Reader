@@ -23,6 +23,11 @@ public class MainActivity extends AppCompatActivity {
     private ListView listApps;
     private static final String TAG = "MainActivity";
 
+    //Notice in the below URL, after limit we have "%d" to take care of choosing b/w top 10 and top 25 apps.
+    //We use String.format(str, int val) to use this functionality
+    private String feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=%d/xml";
+    private int feedLimit=10;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
         listApps=findViewById(R.id.xmlListView);
 
-        downloadURL("http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=10/xml");
+        downloadURL(String.format(feedUrl, feedLimit));
 
     }
 
@@ -48,23 +53,40 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id=item.getItemId();
-        String feedUrl=null;
 
         switch (id){
             case R.id.mnuFree:
-                feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=10/xml";
+                feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=%d/xml";
                 break;
             case R.id.mnuPaid:
-                feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/toppaidapplications/limit=10/xml";
+                feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/toppaidapplications/limit=%d/xml";
                 break;
             case R.id.mnuSongs:
-                feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topsongs/limit=10/xml";
+                feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topsongs/limit=%d/xml";
+                break;
+            case R.id.mnu10:
+                if(!item.isChecked()){
+                    item.setChecked(true);
+                    feedLimit=10;
+                    Log.d(TAG, "onOptionsItemSelected: setting feed limit to : " + feedLimit);
+                } else {
+                    Log.d(TAG, "onOptionsItemSelected: feed limit unchanged");
+                }
+                break;
+            case R.id.mnu25:
+                if(!item.isChecked()){
+                    item.setChecked(true);//Notice that item will not show checked state automatically, we have to explicitly do that
+                    feedLimit=25;
+                    Log.d(TAG, "onOptionsItemSelected: setting feed limit to : " + feedLimit);
+                } else {
+                    Log.d(TAG, "onOptionsItemSelected: feed limit unchanged");
+                }
                 break;
             default://required when we nest menus
                 return super.onOptionsItemSelected(item);
         }
 
-        downloadURL(feedUrl);
+        downloadURL(String.format(feedUrl, feedLimit));
         return true;
     }
 

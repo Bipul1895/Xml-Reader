@@ -8,11 +8,8 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;//          Debug:
-//        for(FeedEntry app:applications){
-//            Log.d(TAG, "parse: ***************");
-//            Log.d(TAG, "parse: " + app.toString());
-//        }
+import java.util.ArrayList;
+
 
 //This class performs the work of parsing the string
 public class ParseApplications {
@@ -93,11 +90,10 @@ public class ParseApplications {
             e.printStackTrace();
         }
 
-          Debug:
-        for(FeedEntry app:applications){
-            Log.d(TAG, "parse: ***************");
-            Log.d(TAG, "parse: " + app.toString());
-        }
+//        for(FeedEntry app:applications){
+//            Log.d(TAG, "parse: ***************");
+//            Log.d(TAG, "parse: " + app.toString());
+//        }
 
         return status;
 

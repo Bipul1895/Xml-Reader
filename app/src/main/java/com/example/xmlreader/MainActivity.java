@@ -1,10 +1,13 @@
 package com.example.xmlreader;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ListView;
 
 import java.io.BufferedReader;
@@ -29,6 +32,40 @@ public class MainActivity extends AppCompatActivity {
 
         downloadURL("http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=10/xml");
 
+    }
+
+    //For menu
+    //Inflates menu resource file
+    //Notice that in case of custom array adapter, inflation required context
+    //Here we do not require context as our class (Main Activity) extends AppCompatActivity
+    //Activity and AppCompatActivity are themselves the context of application
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.feeds_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id=item.getItemId();
+        String feedUrl=null;
+
+        switch (id){
+            case R.id.mnuFree:
+                feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=10/xml";
+                break;
+            case R.id.mnuPaid:
+                feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/toppaidapplications/limit=10/xml";
+                break;
+            case R.id.mnuSongs:
+                feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topsongs/limit=10/xml";
+                break;
+            default://required when we nest menus
+                return super.onOptionsItemSelected(item);
+        }
+
+        downloadURL(feedUrl);
+        return true;
     }
 
     //Calls doInBackground of Async task
@@ -60,9 +97,12 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "onPostExecute: parameter is " + s);
             if(s==null) return;
 
-            //Let's do the parsing
+            //Let's do parsing
             ParseApplications parseApplications=new ParseApplications();
             parseApplications.parse(s);
+
+            FeedAdapter feedAdapter=new FeedAdapter(MainActivity.this, R.layout.list_record, parseApplications.getApplications());
+            listApps.setAdapter(feedAdapter);
 
         }
 
@@ -96,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 HttpURLConnection connection=(HttpURLConnection) url.openConnection();
 
                 int response=connection.getResponseCode();
+                Log.d(TAG, "downloadXML: response code " + response);
 
                 InputStream inputStream=connection.getInputStream();
                 InputStreamReader inputStreamReader=new InputStreamReader(inputStream);//Input stream reader requires an object of input stream

@@ -26,7 +26,12 @@ public class MainActivity extends AppCompatActivity {
     //Notice in the below URL, after limit we have "%d" to take care of choosing b/w top 10 and top 25 apps.
     //We use String.format(str, int val) to use this functionality
     private String feedUrl="http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=%d/xml";
+    private String feedcachedUrl="INVALIDATED";//to prevent download when user spams the same menu button
     private int feedLimit=10;
+
+    //To restore data during orientation change
+    public static final String STATE_URL="feedUrl";
+    public static final String STATE_LIMIT="feedLimit";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +40,25 @@ public class MainActivity extends AppCompatActivity {
 
         listApps=findViewById(R.id.xmlListView);
 
+        //This is to restore the state of the application during orientation change
+        //We restore state here because onRestoreInstanceState is called after onCreate, and we perform download in onCreate
+        //In case you are wondering why we are not restoring value of feedCachedURL then know that
+        //currently we are unable to save contents of our final result, when we rotate device, download must happen again
+        //For that purpose feedCachedUrl should be invalidated, which is the default value
+        if(savedInstanceState != null){
+            feedUrl=savedInstanceState.getString(STATE_URL);
+            feedLimit=savedInstanceState.getInt(STATE_LIMIT);
+        }
+
         downloadURL(String.format(feedUrl, feedLimit));
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(STATE_URL, feedUrl);
+        outState.putInt(STATE_LIMIT, feedLimit);
+        super.onSaveInstanceState(outState);
     }
 
     //For menu
@@ -47,9 +69,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.feeds_menu, menu);
+
+        //taking care of display of check mark on radio button "top 10" and "top 25" when the device is rotated
+        //We will retrieve the value limit from the Bundle
+        //Once we retrieve the value, the following code executes to check mark the correct limit value
+        if(feedLimit == 10){
+            menu.findItem(R.id.mnu10).setChecked(true);
+        }
+        else{
+            menu.findItem(R.id.mnu25).setChecked(true);
+        }
+
         return true;
     }
 
+    //For menu
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id=item.getItemId();
@@ -82,6 +116,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "onOptionsItemSelected: feed limit unchanged");
                 }
                 break;
+            case R.id.mnuRefresh:
+                feedcachedUrl="INVALIDATED";
+                break;
             default://required when we nest menus
                 return super.onOptionsItemSelected(item);
         }
@@ -90,14 +127,21 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+
     //Calls doInBackground of Async task
     //Creates an instance of Download Data class (extends Async task) and calls
     //doInBackground using "execute" method
     private void downloadURL(String feedUrl) {
-        Log.d(TAG, "downloadURL: starting AsyncTask");
-        DownloadData downloadData = new DownloadData();
-        downloadData.execute(feedUrl);//This creates the background thread, The parameter passed to this execute method will got to the doInBackground() method in DownloadData class
-        Log.d(TAG, "downloadURL: done");
+        if(!feedcachedUrl.equalsIgnoreCase(feedUrl)) {
+            Log.d(TAG, "downloadURL: starting AsyncTask");
+            DownloadData downloadData = new DownloadData();
+            downloadData.execute(feedUrl);//This creates the background thread, The parameter passed to this execute method will got to the doInBackground() method in DownloadData class
+            feedcachedUrl=feedUrl;//Remember the last URL
+            Log.d(TAG, "downloadURL: done");
+        }
+        else{
+            Log.d(TAG, "downloadURL: URL not changed");
+        }
     }
 
     private class DownloadData extends AsyncTask<String, Void, String> {
